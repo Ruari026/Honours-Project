@@ -1,0 +1,115 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+
+#define MAX_BRANCHES 4
+#define MAX_ITERATIONS 4
+#define MAX_LOOP_ITERATIONS 100
+
+struct BranchData
+{
+	float4 branchRotation;
+
+	float branchScale;
+
+	int numberOfChildBranches;
+	int connectedChildBranches;
+
+	int childBranchesIdx[MAX_BRANCHES];
+};
+
+RWStructuredBuffer<BranchData> theTree;
+
+[numthreads(8,8,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+	// Info required to recursively generate the tree
+	int createdBranches = 0;
+	int branchesToCreate = 0;
+
+	int workingIteration = 0;
+
+	BranchData workingBranchTree[MAX_ITERATIONS];
+
+
+	// Creating the start of the tree
+	BranchData treeStart = theTree[createdBranches];
+	workingBranchTree[0] = treeStart;
+	// Handling branch size
+	treeStart.branchScale = 1.0f;
+	// Handling branch rotation
+	treeStart.branchRotation = float4(0, 0, 0, 1);
+	// Setting up child branch connections
+	treeStart.numberOfChildBranches = (int) MAX_BRANCHES;
+	branchesToCreate = (int) MAX_BRANCHES;
+
+
+	// Compute shaders don't support recursive methods so the algorithm needs to be restructured to work with a while loop
+	bool isComplete = false;
+	while (!isComplete)
+	{
+		// Checking if the tree has finished generating
+		if ((createdBranches == (branchesToCreate)) && (workingIteration == (MAX_ITERATIONS - 1)))
+		{
+			isComplete = true;
+		}
+		// Otherwise gets the next branch to generate
+		else
+		{
+			// If the current branch is at the end of the tree then need to backtrack till a unfinished branch is found
+			if (workingIteration == (MAX_ITERATIONS - 1))
+			{
+				bool suitableBranchFound = false;
+				while (!suitableBranchFound)
+				{
+					// Cleaning up working tree
+					//workingBranchTree[workingIteration] = NULL;
+
+					// Moving back up the tree
+					workingIteration--;
+					// Checking that if the backtracking has found no suitable branch to build from
+					if (workingIteration == -1)
+					{
+						//UnityEngine.Debug.LogError("ERROR: No suitable branch found to build from");
+						//UnityEngine.Debug.Break();
+					}
+					BranchData branchToCheck = workingBranchTree[workingIteration];
+
+					// Checking if that branch has had all of it's sub branches made
+					// If not then the generation can continue with that branch
+					if (branchToCheck.connectedChildBranches != branchToCheck.numberOfChildBranches)
+					{
+						suitableBranchFound = true;
+					}
+				}
+			}
+
+			// Then build off of the current branch
+			BranchData previousBranch = workingBranchTree[workingIteration];
+
+			// "Creating" new branch
+			createdBranches++;
+			BranchData newBranch = theTree[createdBranches];
+			workingIteration++;
+			workingBranchTree[workingIteration] = newBranch;
+
+			// Setting the details of the new branch
+			// Handling branch size
+			newBranch.branchScale = 1.0f;
+			// Handling branch rotation
+			//newBranch.branchRotation = Quaternion.Euler(branchAngleMax, ((360.0f / previousBranch.numberOfChildBranches) * previousBranch.connectedChildBranches), 0);
+
+			// Checking if child branches should be added to the new branch
+			if (workingIteration < (MAX_ITERATIONS - 1))
+			{
+				newBranch.numberOfChildBranches = (int) MAX_BRANCHES;
+				branchesToCreate += (int) MAX_BRANCHES;
+			}
+
+			// Connecting the previous branch to the new branch
+			int idx = previousBranch.connectedChildBranches;
+			int mb[MAX_BRANCHES] = previousBranch.childBranchesIdx;
+			mb[idx] = createdBranches;
+			previousBranch.connectedChildBranches++;
+		}
+	}
+}
