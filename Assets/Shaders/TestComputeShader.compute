@@ -1,9 +1,16 @@
 ﻿// Each #kernel tells which function to compile; you can have many kernels
 #pragma kernel CSMain
 
+// HLSL: Define Directive (Defining custom constants) https://docs.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-appendix-pre-define-1
+#define MAX_SIZE 1
+
+// HLSl: User Defined Types - https://docs.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-user-defined
+//typedef vector<int, 4> myInt;
+
+// HLSL: Struct (Needs to have the same layout as correspoding C# struct) https://docs.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-struct
 struct ComputeData
 {
-    float4 q;
+    int test[MAX_SIZE];
 };
 
 AppendStructuredBuffer<ComputeData> dataBuffer;
@@ -12,12 +19,15 @@ RWStructuredBuffer<int> argsBuffer;
 [numthreads(1,1,1)]
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
-    int size = 10000;
+    int size = 10;
     for (int i = 0; i < size; i++)
     {
-        ComputeData test;
-        test.q = float4(1, 2, 3, 4);
-        dataBuffer.Append(test);
+        ComputeData data;
+        for (int i = 0; i < MAX_SIZE; i++)
+        {
+            data.test[i] = i;
+        }
+        dataBuffer.Append(data);
     }
     
     argsBuffer[0] = size;

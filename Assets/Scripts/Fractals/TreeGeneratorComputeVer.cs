@@ -29,12 +29,12 @@ public class TreeGeneratorComputeVer : MonoBehaviour
     [SerializeField]
     private uint numberOfIterations = 1;
     private uint currentIteration = 0;
-    
-    private ComputeBuffer treeBuffer = null;
-    private BranchDataGPUVer[] theTree;
 
     [SerializeField]
     private ComputeShader theShader = null;
+    private ComputeBuffer dataBuffer = null;
+    private ComputeBuffer argsBuffer = null;
+    private BranchDataGPUVer[] theTree;
 
     [Header("Model Representation Generation Details")]
     [SerializeField]
@@ -46,9 +46,9 @@ public class TreeGeneratorComputeVer : MonoBehaviour
         Stopwatch stopwatch = new Stopwatch();
         stopwatch.Start();
 
-        SetupGenerationData();
+        SetupBufferData();
 
-        GenerateTree();
+        DispatchComputeShader();
 
         StartModelGeneration(theTree[0]);
 
@@ -65,42 +65,51 @@ public class TreeGeneratorComputeVer : MonoBehaviour
     /// <summary>
     /// 
     /// </summary>
-    private void SetupGenerationData()
+    private void SetupBufferData()
     {
         // When creating a buffer for the compute shader the size of the buffer needs to be pre defined as a shader cannot manipulate the size of the buffer during execution
         // Calculating the max number of required branches
-        int maxPossibleBranches = 0;
+        int bufferMaxCount = 0;
         for (int i = 1; i <= numberOfIterations; i++)
         {
             int addition = (int)(Mathf.Pow(numberOfBranchSplitsMax, (i - 1)));
-            maxPossibleBranches += (addition);
+            bufferMaxCount += (addition);
         }
+        // Calculating the size of the elements in the data struct (in bytes)
+        int bufferStride = 0;
+        BranchDataGPUVer testData = new BranchDataGPUVer((int)numberOfBranchSplitsMax);
+        bufferStride = Marshal.SizeOf(testData);
+        dataBuffer = new ComputeBuffer(bufferMaxCount, bufferStride, ComputeBufferType.Append);
 
-        theTree = new BranchDataGPUVer[maxPossibleBranches];
-        for (int j = 0; j < maxPossibleBranches; j++)
-        {
-            theTree[j] = new BranchDataGPUVer();
-        }
-        UnityEngine.Debug.LogFormat("Tree Data Setup, created {0} branches", maxPossibleBranches.ToString());
+
+        // Also creating buffer to store the actual number of branches created in the compute shader
+        argsBuffer = new ComputeBuffer(1, sizeof(int));
+        argsBuffer.SetData(new int[] { 0 });
+
+        //UnityEngine.Debug.LogFormat("Tree Data Setup, created {0} branches", maxPossibleBranches.ToString());
     }
 
 
     /// <summary>
     /// 
     /// </summary>
-    private void GenerateTree()
+    private void DispatchComputeShader()
     {
-        // Creating buffer from previously generated data
-        treeBuffer = new ComputeBuffer(theTree.Length, Marshal.SizeOf(typeof(BranchDataGPUVer)));
-        treeBuffer.SetData(theTree);
+        int shaderKernel = theShader.FindKernel("CSMain");
+
+        // Binding the buffers to the shader
+        theShader.SetBuffer(shaderKernel, "dataBuffer", dataBuffer);
+        theShader.SetBuffer(shaderKernel, "argsBuffer", argsBuffer);
 
         // Executing compute shader to handle the procedural generation
-        int shaderKernel = theShader.FindKernel("CSMain");
-        theShader.SetBuffer(shaderKernel, "theTree", treeBuffer);
         theShader.Dispatch(shaderKernel, 1, 1, 1);
 
         // Waiting for the shader to finish executing
-        treeBuffer.GetData(theTree);
+        // Getting the generated output from the buffers
+        int[] size = new int[1];
+        argsBuffer.GetData(size);
+        theTree = new BranchDataGPUVer[size[0]];
+        dataBuffer.GetData(theTree);
     }
 
 
@@ -111,55 +120,44 @@ public class TreeGeneratorComputeVer : MonoBehaviour
     */
     private void StartModelGeneration(BranchDataGPUVer treeStart)
     {
-        // Checking that a tree has actually been generated
-        if (treeStart != null)
-        {
-            GameObject trunkModel = Instantiate(branchModelPrefab, this.transform);
-            trunkModel.isStatic = true;
-            //treeStart.spawnedPrefab = trunkModel;
+        GameObject trunkModel = Instantiate(branchModelPrefab, this.transform);
+        trunkModel.isStatic = true;
+        //treeStart.spawnedPrefab = trunkModel;
 
-            ContinueModelGeneration(treeStart, trunkModel);
-        }
-        else
-        {
-            UnityEngine.Debug.LogError("ERROR: Tree Data has not been generated");
-        }
+        ContinueModelGeneration(treeStart, trunkModel);
     }
 
     private void ContinueModelGeneration(BranchDataGPUVer previousData, GameObject previousPrefab)
     {
-        if (previousData != null && previousPrefab != null)
+        // Gets the previous branch's endpoint for positioning the next set of branch offshoots
+        Transform endPoint = null;
+        for (int i = 0; i < previousPrefab.transform.childCount; i++)
         {
-            // Gets the previous branch's endpoint for positioning the next set of branch offshoots
-            Transform endPoint = null;
-            for (int i = 0; i < previousPrefab.transform.childCount; i++)
+            if (previousPrefab.transform.GetChild(i).tag == "EndPoint")
             {
-                if (previousPrefab.transform.GetChild(i).tag == "EndPoint")
-                {
-                    endPoint = previousPrefab.transform.GetChild(i);
-                }
+                endPoint = previousPrefab.transform.GetChild(i);
             }
+        }
 
-            // Spawning in the next set of branch offshoots
-            for (int i = 0; i < previousData.numberOfChildBranches; i++)
-            {
-                BranchDataGPUVer nextData = theTree[previousData.childBranchesIdx[i]];
+        // Spawning in the next set of branch offshoots
+        for (int i = 0; i < previousData.numberofChildBranches; i++)
+        {
+            BranchDataGPUVer nextData = theTree[previousData.childBranchesIdx[i]];
 
-                // Creating model
-                GameObject nextBranchPrefab = Instantiate(branchModelPrefab, this.transform);
-                nextBranchPrefab.isStatic = true;
-                //nextData.spawnedPrefab = nextBranchPrefab;
+            // Creating model
+            GameObject nextBranchPrefab = Instantiate(branchModelPrefab, this.transform);
+            nextBranchPrefab.isStatic = true;
+            //nextData.spawnedPrefab = nextBranchPrefab;
 
-                // Positioning & Rotating model
-                nextBranchPrefab.transform.position = endPoint.transform.position;
-                nextBranchPrefab.transform.rotation = endPoint.transform.rotation * new Quaternion(nextData.branchRotation.x, nextData.branchRotation.y, nextData.branchRotation.z, nextData.branchRotation.w);
+            // Positioning & Rotating model
+            nextBranchPrefab.transform.position = endPoint.transform.position;
+            nextBranchPrefab.transform.rotation = endPoint.transform.rotation * new Quaternion(nextData.rotation.x, nextData.rotation.y, nextData.rotation.z, nextData.rotation.w);
 
-                // Sizing Model
-                nextBranchPrefab.transform.localScale = (Vector3.one * nextData.branchScale);
+            // Sizing Model
+            nextBranchPrefab.transform.localScale = (Vector3.one * nextData.scale);
 
-                // Continuing Tree Generation
-                ContinueModelGeneration(nextData, nextBranchPrefab);
-            }
+            // Continuing Tree Generation
+            ContinueModelGeneration(nextData, nextBranchPrefab);
         }
     }
 }

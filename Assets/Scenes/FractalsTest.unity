@@ -403,8 +403,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   branchAngleMax: 45
   branchAngleMin: 45
-  numberOfBranchSplitsMax: 2
-  numberOfBranchSplitsMin: 2
+  numberOfBranchSplitsMax: 1
+  numberOfBranchSplitsMin: 1
   branchSizeMax: 1
   branchSizeMin: 1
   branchSizeCurve:
@@ -431,7 +431,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  numberOfIterations: 1
+  numberOfIterations: 2
   theShader: {fileID: 7200000, guid: 4aa2f381f0d3de8479d122d0a7658880, type: 3}
   branchModelPrefab: {fileID: 1904507018455601534, guid: 49d43c1b232b10b449fa80cbb9eace9d,
     type: 3}
@@ -480,8 +480,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   branchAngleMax: 30
   branchAngleMin: 30
-  numberOfBranchSplitsMax: 3
-  numberOfBranchSplitsMin: 3
+  numberOfBranchSplitsMax: 1
+  numberOfBranchSplitsMin: 1
   branchSizeMax: 1
   branchSizeMin: 1
   branchSizeCurve:
@@ -508,7 +508,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  numberOfIterations: 6
+  numberOfIterations: 2
   branchModelPrefab: {fileID: 1904507018455601534, guid: 49d43c1b232b10b449fa80cbb9eace9d,
     type: 3}
 --- !u!4 &1760258203

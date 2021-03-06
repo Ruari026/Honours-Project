@@ -1,9 +1,10 @@
 ﻿// Each #kernel tells which function to compile; you can have many kernels
 #pragma kernel CSMain
 
-#define MAX_BRANCHES 4
-#define MAX_ITERATIONS 4
-#define MAX_LOOP_ITERATIONS 100
+#define MAX_BRANCHES 1
+#define MAX_ITERATIONS 2
+
+typedef vector<int, MAX_BRANCHES> intVector;
 
 struct BranchData
 {
@@ -14,10 +15,30 @@ struct BranchData
 	int numberOfChildBranches;
 	int connectedChildBranches;
 
-	int childBranchesIdx[MAX_BRANCHES];
+	intVector childBranchesIdx;
 };
 
-RWStructuredBuffer<BranchData> theTree;
+BranchData CreateDefaultBranchData()
+{
+    BranchData defaultData;
+    
+    defaultData.branchRotation = float4(0, 0, 0, 1);
+    
+    defaultData.branchScale = 1.0f;
+    
+    defaultData.numberOfChildBranches = 0;
+    defaultData.connectedChildBranches = 0;
+    
+    for (int i = 0; i < MAX_BRANCHES; i++)
+    {
+        defaultData.childBranchesIdx[i] = -1;;
+    }
+    
+    return defaultData;
+}
+
+AppendStructuredBuffer<BranchData> dataBuffer;
+RWStructuredBuffer<int> argsBuffer;
 
 [numthreads(8,8,1)]
 void CSMain (uint3 id : SV_DispatchThreadID)
@@ -32,15 +53,20 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 
 
 	// Creating the start of the tree
-	BranchData treeStart = theTree[createdBranches];
-	workingBranchTree[0] = treeStart;
+    BranchData treeStart = CreateDefaultBranchData();
+	// Handling branch rotation
+    treeStart.branchRotation = float4(0, 0, 0, 1);
 	// Handling branch size
 	treeStart.branchScale = 1.0f;
-	// Handling branch rotation
-	treeStart.branchRotation = float4(0, 0, 0, 1);
 	// Setting up child branch connections
 	treeStart.numberOfChildBranches = (int) MAX_BRANCHES;
+    treeStart.connectedChildBranches = 0;
 	branchesToCreate = (int) MAX_BRANCHES;
+    
+    // Adding new branch to buffer and storing the the working tree
+    dataBuffer.Append(treeStart);
+    argsBuffer[0] = (createdBranches + 1);
+    workingBranchTree[0] = treeStart;
 
 
 	// Compute shaders don't support recursive methods so the algorithm needs to be restructured to work with a while loop
@@ -88,7 +114,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 
 			// "Creating" new branch
 			createdBranches++;
-			BranchData newBranch = theTree[createdBranches];
+            BranchData newBranch = CreateDefaultBranchData();;
 			workingIteration++;
 			workingBranchTree[workingIteration] = newBranch;
 
@@ -107,9 +133,13 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 
 			// Connecting the previous branch to the new branch
 			int idx = previousBranch.connectedChildBranches;
-			int mb[MAX_BRANCHES] = previousBranch.childBranchesIdx;
+			intVector mb = previousBranch.childBranchesIdx;
 			mb[idx] = createdBranches;
 			previousBranch.connectedChildBranches++;
-		}
+            
+            // Adding the new branch to the buffer
+            dataBuffer.Append(newBranch);
+            argsBuffer[0] = (createdBranches + 1);
+        }
 	}
 }

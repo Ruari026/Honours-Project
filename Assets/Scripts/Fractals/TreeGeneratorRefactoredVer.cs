@@ -29,7 +29,7 @@ public class TreeGeneratorRefactoredVer : MonoBehaviour
     private uint numberOfIterations = 1;
     private uint currentIteration = 0;
 
-    private BranchDataGPUVer[] theTree;
+    private BranchDataRefactoredVer[] theTree;
 
     [Header("Model Representation Generation Details")]
     [SerializeField]
@@ -72,10 +72,10 @@ public class TreeGeneratorRefactoredVer : MonoBehaviour
             maxPossibleBranches += (addition);
         }
 
-        theTree = new BranchDataGPUVer[maxPossibleBranches];
+        theTree = new BranchDataRefactoredVer[maxPossibleBranches];
         for (int j = 0; j < maxPossibleBranches; j++)
         {
-            theTree[j] = new BranchDataGPUVer();
+            theTree[j] = new BranchDataRefactoredVer();
         }
         UnityEngine.Debug.LogFormat("Tree Data Setup, created {0} branches", maxPossibleBranches.ToString());
     }
@@ -92,10 +92,10 @@ public class TreeGeneratorRefactoredVer : MonoBehaviour
 
         int workingIteration = 0;
 
-        BranchDataGPUVer[] workingBranchTree = new BranchDataGPUVer[numberOfIterations];
+        BranchDataRefactoredVer[] workingBranchTree = new BranchDataRefactoredVer[numberOfIterations];
         
         // Creating the start of the tree
-        BranchDataGPUVer treeStart = theTree[createdBranches];
+        BranchDataRefactoredVer treeStart = theTree[createdBranches];
         workingBranchTree[0] = treeStart;
         // Handling branch size
         treeStart.branchScale = 1.0f;
@@ -135,7 +135,7 @@ public class TreeGeneratorRefactoredVer : MonoBehaviour
                             //UnityEngine.Debug.LogError("ERROR: No suitable branch found to build from");
                             //UnityEngine.Debug.Break();
                         }
-                        BranchDataGPUVer branchToCheck = workingBranchTree[workingIteration];
+                        BranchDataRefactoredVer branchToCheck = workingBranchTree[workingIteration];
 
                         // Checking if that branch has had all of it's sub branches made
                         // If not then the generation can continue with that branch
@@ -147,11 +147,11 @@ public class TreeGeneratorRefactoredVer : MonoBehaviour
                 }
 
                 // Then build off of the current branch
-                BranchDataGPUVer previousBranch = workingBranchTree[workingIteration];
+                BranchDataRefactoredVer previousBranch = workingBranchTree[workingIteration];
 
                 // "Creating" new branch
                 createdBranches++;
-                BranchDataGPUVer newBranch = theTree[createdBranches];
+                BranchDataRefactoredVer newBranch = theTree[createdBranches];
                 workingIteration++;
                 workingBranchTree[workingIteration] = newBranch;
 
@@ -183,7 +183,7 @@ public class TreeGeneratorRefactoredVer : MonoBehaviour
     Creating Visual Representation of each generated tree
     ============================================================================================================================================================================================================================================================================================================
     */
-    private void StartModelGeneration(BranchDataGPUVer treeStart)
+    private void StartModelGeneration(BranchDataRefactoredVer treeStart)
     {
         // Checking that a tree has actually been generated
         if (treeStart != null)
@@ -200,7 +200,7 @@ public class TreeGeneratorRefactoredVer : MonoBehaviour
         }
     }
 
-    private void ContinueModelGeneration(BranchDataGPUVer previousData, GameObject previousPrefab)
+    private void ContinueModelGeneration(BranchDataRefactoredVer previousData, GameObject previousPrefab)
     {
         if (previousData != null && previousPrefab != null)
         {
@@ -217,7 +217,7 @@ public class TreeGeneratorRefactoredVer : MonoBehaviour
             // Spawning in the next set of branch offshoots
             for (int i = 0; i < previousData.numberOfChildBranches; i++)
             {
-                BranchDataGPUVer nextData = theTree[previousData.childBranchesIdx[i]];
+                BranchDataRefactoredVer nextData = theTree[previousData.childBranchesIdx[i]];
 
                 // Creating model
                 GameObject nextBranchPrefab = Instantiate(branchModelPrefab, this.transform);
