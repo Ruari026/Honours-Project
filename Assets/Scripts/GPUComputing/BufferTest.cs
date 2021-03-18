@@ -20,12 +20,11 @@ public class BufferTest : MonoBehaviour
         stopwatch.Start();
 
         // Need to know the count of the buffer and the stride (size in bytes) of each element in the buffer
-        int count = 10000;
-        var test = new ComputeData();
-        int stride = Marshal.SizeOf(test);
+        int count = 100;
+        int stride = Marshal.SizeOf(new TestData());
 
         // Creating each buffer
-        dataBuffer = new ComputeBuffer(count, Marshal.SizeOf(test), ComputeBufferType.Append);
+        dataBuffer = new ComputeBuffer(count, stride);
         argsBuffer = new ComputeBuffer(1, (sizeof(int)));
         argsBuffer.SetData(new int[1]);
 
@@ -39,7 +38,7 @@ public class BufferTest : MonoBehaviour
         int[] size = new int[1];
         argsBuffer.GetData(size);
         
-        var data = new ComputeData[size[0]];
+        var data = new TestData[size[0]];
         dataBuffer.GetData(data);
 
         var v = data[0];    
@@ -48,9 +47,7 @@ public class BufferTest : MonoBehaviour
     }
 }
 
-
-[StructLayout(LayoutKind.Sequential)] // Required to make the struct blittable
-public struct ComputeData
+struct TestData
 {
-    public System.Int32[] q;
+    int i;
 }

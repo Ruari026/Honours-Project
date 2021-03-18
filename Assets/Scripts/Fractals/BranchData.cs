@@ -19,31 +19,32 @@ public class BranchDataCPUVer : BranchDataBase
     public List<BranchDataCPUVer> childBranches = new List<BranchDataCPUVer>();
 }
 
-public class BranchDataRefactoredVer : BranchDataBase
+public struct BranchDataRefactoredVer
 {
-    public int numberOfChildBranches = -1;
-    public int connectedChildBranches = 0;
-
-    public int[] childBranchesIdx = new int[4];
+    public UnityEngine.Quaternion branchRotation;
+    public float branchScale;
+    public int numberOfChildBranches;
+    public int connectedChildBranches;
+    public int childBranchesStartIdx;
 }
 
 
 [StructLayout(LayoutKind.Sequential)] // Required to make the struct blittable
 public struct BranchDataGPUVer
 {
-    public UnityEngine.Quaternion rotation;
+    public UnityEngine.Vector3 rotation;
     public float scale;
     public int numberofChildBranches;
     public int numberofConnectedBranches;
-    public Vector<int> childBranchesIdx;
+    public int childBranchesStartIdx;
 
 
     public BranchDataGPUVer(int maxConnectedBranches)
     {
-        rotation = UnityEngine.Quaternion.identity;
+        rotation = UnityEngine.Vector3.zero;
         scale = 1.0f;
         numberofChildBranches = 0;
         numberofConnectedBranches = 0;
-        childBranchesIdx = new Vector<int>();
+        childBranchesStartIdx = -1;
     }
 }

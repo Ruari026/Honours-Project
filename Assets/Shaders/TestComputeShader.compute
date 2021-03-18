@@ -2,7 +2,9 @@
 #pragma kernel CSMain
 
 // HLSL: Define Directive (Defining custom constants) https://docs.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-appendix-pre-define-1
-#define MAX_SIZE 1
+#define MAX_X_THREADS 4
+#define MAX_Y_THREADS 4
+#define MAX_Z_THREADS 4
 
 // HLSl: User Defined Types - https://docs.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-user-defined
 //typedef vector<int, 4> myInt;
@@ -10,25 +12,22 @@
 // HLSL: Struct (Needs to have the same layout as correspoding C# struct) https://docs.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-struct
 struct ComputeData
 {
-    int test[MAX_SIZE];
+    int i;
 };
 
-AppendStructuredBuffer<ComputeData> dataBuffer;
 RWStructuredBuffer<int> argsBuffer;
+RWStructuredBuffer<ComputeData> dataBuffer;
 
-[numthreads(1,1,1)]
+[numthreads(MAX_X_THREADS, MAX_Y_THREADS, MAX_Z_THREADS)]
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
-    int size = 10;
-    for (int i = 0; i < size; i++)
-    {
-        ComputeData data;
-        for (int i = 0; i < MAX_SIZE; i++)
-        {
-            data.test[i] = i;
-        }
-        dataBuffer.Append(data);
-    }
+    int currentThread = (id.z * MAX_X_THREADS * MAX_Y_THREADS) + (id.y * MAX_X_THREADS) + id.x;
     
+    ComputeData newData;
+    newData.i = currentThread;
+    dataBuffer[currentThread] = newData;
+    
+    
+    int size = 64;
     argsBuffer[0] = size;
 }

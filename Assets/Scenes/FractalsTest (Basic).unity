@@ -224,7 +224,7 @@ GameObject:
   - component: {fileID: 865665917}
   - component: {fileID: 865665918}
   m_Layer: 0
-  m_Name: Generator (CPU)
+  m_Name: Generator (CPU Recursive)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -237,13 +237,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 865665916}
-  m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 2
-  m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &865665918
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -256,37 +256,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 09ded17e318d7da40b106e7cb7d888ef, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  branchAngleMax: 60
-  branchAngleMin: 60
-  numberOfBranchSplitsMax: 2
-  numberOfBranchSplitsMin: 2
-  branchSizeMax: 1
-  branchSizeMin: 1
-  branchSizeCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 34
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    - serializedVersion: 3
-      time: 1
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 34
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  numberOfIterations: 15
+  numberOfGenerations: 64
+  branchAngle: 30
+  numberOfBranchSplits: 3
+  branchSize: 1
+  numberOfIterations: 11
   branchModelPrefab: {fileID: 1904507018455601534, guid: 49d43c1b232b10b449fa80cbb9eace9d,
     type: 3}
 --- !u!1 &963194225
@@ -383,12 +357,12 @@ GameObject:
   - component: {fileID: 1307419741}
   - component: {fileID: 1307419740}
   m_Layer: 0
-  m_Name: Generator (ComputeShader)
+  m_Name: Generator (ComputeShader Iterative)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1307419740
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -401,37 +375,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: be9b1b05aea2e864894dc018ca5cb664, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  branchAngleMax: 45
-  branchAngleMin: 45
-  numberOfBranchSplitsMax: 1
-  numberOfBranchSplitsMin: 1
-  branchSizeMax: 1
-  branchSizeMin: 1
-  branchSizeCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 34
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    - serializedVersion: 3
-      time: 1
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 34
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  numberOfIterations: 2
+  numberOfGenerations: 64
+  branchAngle: 30
+  numberOfBranchSplits: 3
+  branchSize: 1
+  numberOfIterations: 12
   theShader: {fileID: 7200000, guid: 4aa2f381f0d3de8479d122d0a7658880, type: 3}
   branchModelPrefab: {fileID: 1904507018455601534, guid: 49d43c1b232b10b449fa80cbb9eace9d,
     type: 3}
@@ -442,13 +390,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1307419739}
-  m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 4
-  m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1760258201
 GameObject:
   m_ObjectHideFlags: 0
@@ -460,12 +408,12 @@ GameObject:
   - component: {fileID: 1760258203}
   - component: {fileID: 1760258202}
   m_Layer: 0
-  m_Name: Generator (Refactor)
+  m_Name: Generator (CPU Iterative)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1760258202
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -478,37 +426,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ac1ba3fd125c90746a55a6abbb29a40e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  branchAngleMax: 30
-  branchAngleMin: 30
-  numberOfBranchSplitsMax: 1
-  numberOfBranchSplitsMin: 1
-  branchSizeMax: 1
-  branchSizeMin: 1
-  branchSizeCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 1
-      inSlope: -0.9
-      outSlope: -0.9
-      tangentMode: 34
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0.33333334
-    - serializedVersion: 3
-      time: 1
-      value: 0.1
-      inSlope: -0.9
-      outSlope: -0.9
-      tangentMode: 34
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  numberOfIterations: 2
+  numberOfGenerations: 1
+  branchAngle: 30
+  numberOfBranchSplits: 3
+  branchSize: 1
+  numberOfIterations: 15
   branchModelPrefab: {fileID: 1904507018455601534, guid: 49d43c1b232b10b449fa80cbb9eace9d,
     type: 3}
 --- !u!4 &1760258203
@@ -518,10 +440,10 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1760258201}
-  m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 3
-  m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}

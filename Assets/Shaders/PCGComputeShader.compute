@@ -1,21 +1,24 @@
 ﻿// Each #kernel tells which function to compile; you can have many kernels
 #pragma kernel CSMain
 
-#define MAX_BRANCHES 1
-#define MAX_ITERATIONS 2
+#define MAX_X_THREADS 4
+#define MAX_Y_THREADS 4
+#define MAX_Z_THREADS 4
 
-typedef vector<int, MAX_BRANCHES> intVector;
+#define MAX_BRANCHES 3
+#define MAX_ITERATIONS 12
+#define MAX_ROTATION 30
 
 struct BranchData
 {
-	float4 branchRotation;
+	float3 branchRotation;
 
 	float branchScale;
 
 	int numberOfChildBranches;
-	int connectedChildBranches;
-
-	intVector childBranchesIdx;
+    int connectedChildBranches;
+    
+    int childBranchesStartIdx;
 };
 
 BranchData CreateDefaultBranchData()
@@ -24,122 +27,146 @@ BranchData CreateDefaultBranchData()
     
     defaultData.branchRotation = float4(0, 0, 0, 1);
     
-    defaultData.branchScale = 1.0f;
+    defaultData.branchScale = -2.0f;
     
     defaultData.numberOfChildBranches = 0;
     defaultData.connectedChildBranches = 0;
-    
-    for (int i = 0; i < MAX_BRANCHES; i++)
-    {
-        defaultData.childBranchesIdx[i] = -1;;
-    }
+
+    defaultData.childBranchesStartIdx = -1;
     
     return defaultData;
 }
 
-AppendStructuredBuffer<BranchData> dataBuffer;
+// Info that's passed to and from the CPU
+RWStructuredBuffer<BranchData> dataBuffer;
+RWStructuredBuffer<int> connectionsBuffer;
 RWStructuredBuffer<int> argsBuffer;
 
-[numthreads(8,8,1)]
+[numthreads(MAX_X_THREADS, MAX_Y_THREADS, MAX_Z_THREADS)]
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
-	// Info required to recursively generate the tree
-	int createdBranches = 0;
-	int branchesToCreate = 0;
-
-	int workingIteration = 0;
-
-	BranchData workingBranchTree[MAX_ITERATIONS];
-
-
-	// Creating the start of the tree
-    BranchData treeStart = CreateDefaultBranchData();
-	// Handling branch rotation
-    treeStart.branchRotation = float4(0, 0, 0, 1);
-	// Handling branch size
-	treeStart.branchScale = 1.0f;
-	// Setting up child branch connections
-	treeStart.numberOfChildBranches = (int) MAX_BRANCHES;
-    treeStart.connectedChildBranches = 0;
-	branchesToCreate = (int) MAX_BRANCHES;
+    // Getting the start index for all info on the currentGeneration
+    int maxPossibleBranches = 0;
+    for (int i = 1; i <= MAX_ITERATIONS; i++)
+    {
+        int addition = (pow(MAX_BRANCHES, (i - 1)));
+        maxPossibleBranches += (addition);
+    }
+    int currentGeneration = (id.z * MAX_X_THREADS * MAX_Y_THREADS) + (id.y * MAX_X_THREADS) + id.x;
+    int currentGenStartIdx = (maxPossibleBranches * currentGeneration);
     
-    // Adding new branch to buffer and storing the the working tree
-    dataBuffer.Append(treeStart);
+    // Info required to recursively generate the tree
+    int createdBranches = 0;
+    int branchesToCreate = 0;
+
+    int workingIteration = 0;
+
+    int workingBranchTree[MAX_ITERATIONS];
+        
+    // Creating the start of the tree
+    BranchData treeStart = CreateDefaultBranchData();
+
+    // Handling branch size
+    treeStart.branchScale = 1.0f;
+
+    // Handling branch rotation
+    treeStart.branchRotation = float3(0, 0, 0);
+
+    // Setting up child branch connections
+    treeStart.childBranchesStartIdx = currentGenStartIdx;
+    treeStart.numberOfChildBranches = MAX_BRANCHES;
+    branchesToCreate = MAX_BRANCHES;
+
+    // Storing newly created branch
+    workingBranchTree[0] = currentGenStartIdx + createdBranches;
+    dataBuffer[currentGenStartIdx + createdBranches] = treeStart;
+
+    // Storing amount of created data on both the branch data buffer and connections buffer (alternative to getting the size of the array)
     argsBuffer[0] = (createdBranches + 1);
-    workingBranchTree[0] = treeStart;
+    argsBuffer[1] = branchesToCreate;
 
-
-	// Compute shaders don't support recursive methods so the algorithm needs to be restructured to work with a while loop
-	bool isComplete = false;
-	while (!isComplete)
-	{
-		// Checking if the tree has finished generating
-		if ((createdBranches == (branchesToCreate)) && (workingIteration == (MAX_ITERATIONS - 1)))
-		{
-			isComplete = true;
-		}
-		// Otherwise gets the next branch to generate
-		else
-		{
-			// If the current branch is at the end of the tree then need to backtrack till a unfinished branch is found
-			if (workingIteration == (MAX_ITERATIONS - 1))
-			{
-				bool suitableBranchFound = false;
-				while (!suitableBranchFound)
-				{
-					// Cleaning up working tree
-					//workingBranchTree[workingIteration] = NULL;
-
-					// Moving back up the tree
-					workingIteration--;
-					// Checking that if the backtracking has found no suitable branch to build from
-					if (workingIteration == -1)
-					{
-						//UnityEngine.Debug.LogError("ERROR: No suitable branch found to build from");
-						//UnityEngine.Debug.Break();
-					}
-					BranchData branchToCheck = workingBranchTree[workingIteration];
-
-					// Checking if that branch has had all of it's sub branches made
-					// If not then the generation can continue with that branch
-					if (branchToCheck.connectedChildBranches != branchToCheck.numberOfChildBranches)
-					{
-						suitableBranchFound = true;
-					}
-				}
-			}
-
-			// Then build off of the current branch
-			BranchData previousBranch = workingBranchTree[workingIteration];
-
-			// "Creating" new branch
-			createdBranches++;
-            BranchData newBranch = CreateDefaultBranchData();;
-			workingIteration++;
-			workingBranchTree[workingIteration] = newBranch;
-
-			// Setting the details of the new branch
-			// Handling branch size
-			newBranch.branchScale = 1.0f;
-			// Handling branch rotation
-			//newBranch.branchRotation = Quaternion.Euler(branchAngleMax, ((360.0f / previousBranch.numberOfChildBranches) * previousBranch.connectedChildBranches), 0);
-
-			// Checking if child branches should be added to the new branch
-			if (workingIteration < (MAX_ITERATIONS - 1))
-			{
-				newBranch.numberOfChildBranches = (int) MAX_BRANCHES;
-				branchesToCreate += (int) MAX_BRANCHES;
-			}
-
-			// Connecting the previous branch to the new branch
-			int idx = previousBranch.connectedChildBranches;
-			intVector mb = previousBranch.childBranchesIdx;
-			mb[idx] = createdBranches;
-			previousBranch.connectedChildBranches++;
-            
-            // Adding the new branch to the buffer
-            dataBuffer.Append(newBranch);
-            argsBuffer[0] = (createdBranches + 1);
+    // Compute shaders don't support recursive methods so the algorithm needs to be restructured to work with a while loop
+    bool isComplete = false;
+    while (!isComplete)
+    {
+        // Checking if the tree has finished generating
+        if ((createdBranches == (branchesToCreate)) && (workingIteration == (MAX_ITERATIONS - 1)))
+        {
+            isComplete = true;
         }
-	}
+        // Otherwise gets the next branch to generate
+        else
+        {
+            // If the current branch is at the end of the tree then need to backtrack till a unfinished branch is found
+            if (workingIteration == (MAX_ITERATIONS - 1))
+            {
+                bool suitableBranchFound = false;
+                while (!suitableBranchFound)
+                {
+                    // Cleaning up working tree
+                    //workingBranchTree[workingIteration] = NULL;
+
+                    // Moving back up the tree
+                    workingIteration--;
+                    // Checking that if the backtracking has found no suitable branch to build from
+                    if (workingIteration == -1)
+                    {
+                        //UnityEngine.Debug.LogError("ERROR: No suitable branch found to build from");
+                        //UnityEngine.Debug.Break();
+                    }
+                    int branchIdx = workingBranchTree[workingIteration];
+                    BranchData branchToCheck = dataBuffer[branchIdx];
+
+                    // Checking if that branch has had all of it's sub branches made
+                    // If not then the generation can continue with that branch
+                    if (branchToCheck.connectedChildBranches != branchToCheck.numberOfChildBranches)
+                    {
+                        suitableBranchFound = true;
+                    }
+                }
+            }
+
+            // Then build off of the current branch
+            int previousBranchIdx = workingBranchTree[workingIteration];
+            BranchData previousBranch = dataBuffer[previousBranchIdx];;
+
+            // Creating new branch
+            createdBranches++;
+            BranchData newBranch = CreateDefaultBranchData();
+            workingIteration++;
+
+            // Setting the details of the new branch
+            // Handling branch size
+            newBranch.branchScale = 1.0f;
+
+            // Handling branch rotation
+            //newBranch.branchRotation = Quaternion.Euler(branchAngle, ((360.0f / previousBranch.numberOfChildBranches) * previousBranch.connectedChildBranches), 0);
+            newBranch.branchRotation = float3(MAX_ROTATION, ((360 / previousBranch.numberOfChildBranches) * previousBranch.connectedChildBranches), 0);
+            
+            // Checking if child branches should be added to the new branch
+            if (workingIteration < (MAX_ITERATIONS - 1))
+            {
+                newBranch.numberOfChildBranches = MAX_BRANCHES;
+                newBranch.childBranchesStartIdx = currentGenStartIdx + branchesToCreate;
+                branchesToCreate += MAX_BRANCHES;
+
+                // Storing amount of created data on both the connections buffer (only increases this if the branch is not at the end of the tree)
+                argsBuffer[1] = branchesToCreate + 1 + currentGenStartIdx;
+            }
+
+            // Connecting the previous branch to the new branch
+            connectionsBuffer[previousBranch.childBranchesStartIdx + previousBranch.connectedChildBranches] = createdBranches;
+            previousBranch.connectedChildBranches++;
+
+            // Saving changed details on the old branch
+            dataBuffer[workingBranchTree[workingIteration - 1]] = previousBranch;
+
+            // Saving new branch
+            dataBuffer[currentGenStartIdx + createdBranches] = newBranch;
+            workingBranchTree[workingIteration] = currentGenStartIdx + createdBranches;
+
+            // Storing amount of created data on the branch data buffer
+            argsBuffer[0] = (createdBranches + 1) + currentGenStartIdx;
+        }
+    }
 }
