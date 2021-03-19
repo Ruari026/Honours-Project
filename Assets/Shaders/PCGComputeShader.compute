@@ -1,13 +1,13 @@
 ﻿// Each #kernel tells which function to compile; you can have many kernels
 #pragma kernel CSMain
 
-#define MAX_X_THREADS 4
-#define MAX_Y_THREADS 4
+#define MAX_X_THREADS 16
+#define MAX_Y_THREADS 16
 #define MAX_Z_THREADS 4
 
 #define MAX_BRANCHES 3
-#define MAX_ITERATIONS 12
 #define MAX_ROTATION 30
+#define MAX_ITERATIONS 8
 
 struct BranchData
 {

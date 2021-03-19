@@ -1,37 +1,13 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
 using UnityEngine;
 
-public class TreeGeneratorComputeVer : MonoBehaviour
+public class TreeGeneratorComputeVer : TreeGeneratorBase
 {
-    // Tree Data Generation Details
-    [Header("Tree Data Generation Details (NEEDS TO MATCH THE VALUES DEFINED IN THE COMPUTE SHADER)")]
-    [Min(1)]
-    [SerializeField]
-    private uint numberOfGenerations = 1;
     private int maxPossibleBranches = 0;
-
-    [Range(0, 90)]
-    [SerializeField]
-    private float branchAngle = 0;
-
-    [SerializeField]
-    private uint numberOfBranchSplits = 2;
-
-    [SerializeField]
-    private float branchSize = 1;
-
-    [SerializeField]
-    private uint numberOfIterations = 1;
-    private uint currentIteration = 0;
-
-    private int spawnedBranches = 0;
-
-
+    
     // Tree Data Generation Details
-    [Header("Compute Shader Details")]
+    [Header("Compute Shader Specific Details")]
     [SerializeField]
     private ComputeShader theShader = null;
 
@@ -39,16 +15,37 @@ public class TreeGeneratorComputeVer : MonoBehaviour
     private ComputeBuffer connectionsBuffer = null;
     private ComputeBuffer argsBuffer = null;
 
-    private BranchDataGPUVer[] theTree;
-    private int[] treeConnections;
+    private BranchDataGPUVer[] theTree = null;
+    private int[] treeConnections = null;
 
 
-    [Header("Model Representation Generation Details")]
-    [SerializeField]
-    private GameObject branchModelPrefab;
+    /*
+    ============================================================================================================================================================================================================================================================================================================
+    TreeGeneratorBase Inherited Methods
+    ============================================================================================================================================================================================================================================================================================================
+    */
+    /// <summary>
+    /// 
+    /// </summary>
+    public override void ResetData()
+    {
+        dataBuffer = null;
 
-    // Start is called before the first frame update
-    void Start()
+        connectionsBuffer = null;
+
+        argsBuffer = null;
+
+        theTree = null;
+
+        treeConnections = null;
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="debug"></param>
+    /// <returns></returns>
+    public override long GenerateTreeData(bool debug)
     {
         Stopwatch stopwatch = new Stopwatch();
         stopwatch.Start();
@@ -58,9 +55,21 @@ public class TreeGeneratorComputeVer : MonoBehaviour
         DispatchComputeShader();
 
         stopwatch.Stop();
-        UnityEngine.Debug.LogFormat("GPU (Compute Shader) Algorithm Complete: {0}ms", stopwatch.ElapsedMilliseconds.ToString());
 
-        //StartModelGeneration();
+        if (debug)
+        {
+            UnityEngine.Debug.LogFormat("GPU (Compute Shader) Algorithm Complete: {0}ms", stopwatch.ElapsedMilliseconds.ToString());
+        }
+
+        return stopwatch.ElapsedMilliseconds;
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public override void GenerateTreeModels()
+    {
+        StartModelGeneration();
     }
 
 
@@ -134,8 +143,6 @@ public class TreeGeneratorComputeVer : MonoBehaviour
         treeConnections = new int[maxPossibleBranches * numberOfGenerations];
         connectionsBuffer.GetData(treeConnections);
         connectionsBuffer.Release();
-
-        bool b = true;
     }
 
 
@@ -144,14 +151,13 @@ public class TreeGeneratorComputeVer : MonoBehaviour
     Creating Visual Representation of each generated tree
     ============================================================================================================================================================================================================================================================================================================
     */
+    /// <summary>
+    /// 
+    /// </summary>
     private void StartModelGeneration()
     {
         for (int i = 0; i < numberOfGenerations; i++)
         {
-            if (maxPossibleBranches * i >= theTree.Length)
-            {
-                bool b = true;
-            }
             BranchDataGPUVer treeStart = theTree[maxPossibleBranches * i];
 
             GameObject trunkModel = Instantiate(branchModelPrefab, this.transform);
@@ -164,6 +170,11 @@ public class TreeGeneratorComputeVer : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="previousData"></param>
+    /// <param name="previousPrefab"></param>
     private void ContinueModelGeneration(BranchDataGPUVer previousData, GameObject previousPrefab)
     {
         // Gets the previous branch's endpoint for positioning the next set of branch offshoots

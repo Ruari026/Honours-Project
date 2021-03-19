@@ -1,43 +1,37 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using UnityEngine;
 
-public class TreeGeneratorRefactoredVer : MonoBehaviour
+public class TreeGeneratorRefactoredVer : TreeGeneratorBase
 {
-    [Min(1)]
-    [SerializeField]
-    private uint numberOfGenerations = 1;
-
     // Arrays that contain the info passed by buffers
-    private BranchDataRefactoredVer[] branchData;
-    private int[] branchConnections;
+    private BranchDataRefactoredVer[] branchData = null;
+    private int[] branchConnections = null;
     private int maxPossibleBranches = 0;
 
-    // Tree Data Generation Details
-    [Header("Tree Data Generation Details")]
-    [Range(0, 90)]
-    [SerializeField]
-    private float branchAngle = 0;
 
-    [SerializeField]
-    private uint numberOfBranchSplits = 2;
+    /*
+    ============================================================================================================================================================================================================================================================================================================
+    TreeGeneratorBase Inherited Methods
+    ============================================================================================================================================================================================================================================================================================================
+    */
+    /// <summary>
+    /// 
+    /// </summary>
+    public override void ResetData()
+    {
+        branchData = null;
 
-    [SerializeField]
-    private float branchSize = 1;
+        branchConnections = null;
 
-    [SerializeField]
-    private uint numberOfIterations = 1;
+        maxPossibleBranches = 0;
+    }
 
-    private int spawnedBranches = 0;
-
-    [Header("Model Representation Generation Details")]
-    [SerializeField]
-    private GameObject branchModelPrefab;
-
-
-    // Start is called before the first frame update
-    void Start()
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="debug"></param>
+    /// <returns></returns>
+    public override long GenerateTreeData(bool debug)
     {
         Stopwatch stopwatch = new Stopwatch();
         stopwatch.Start();
@@ -50,9 +44,21 @@ public class TreeGeneratorRefactoredVer : MonoBehaviour
         }
 
         stopwatch.Stop();
-        UnityEngine.Debug.LogFormat("CPU (GPU Emulation) Algorithm Complete: {0}ms", stopwatch.ElapsedMilliseconds.ToString());
 
-        //StartModelGeneration();
+        if (debug)
+        {
+            UnityEngine.Debug.LogFormat("CPU (GPU Emulation) Algorithm Complete: {0}ms", stopwatch.ElapsedMilliseconds.ToString());
+        }
+
+        return stopwatch.ElapsedMilliseconds;
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public override void GenerateTreeModels()
+    {
+        StartModelGeneration();
     }
 
 
@@ -210,6 +216,9 @@ public class TreeGeneratorRefactoredVer : MonoBehaviour
     Creating Visual Representation of each generated tree
     ============================================================================================================================================================================================================================================================================================================
     */
+    /// <summary>
+    /// 
+    /// </summary>
     private void StartModelGeneration()
     {
         for (int i = 0; i < numberOfGenerations; i++)
@@ -224,6 +233,11 @@ public class TreeGeneratorRefactoredVer : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="previousData"></param>
+    /// <param name="previousPrefab"></param>
     private void ContinueModelGeneration(BranchDataRefactoredVer previousData, GameObject previousPrefab)
     {
         // Gets the previous branch's endpoint for positioning the next set of branch offshoots

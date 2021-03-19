@@ -23,6 +23,9 @@ public class BufferTest : MonoBehaviour
         int count = 100;
         int stride = Marshal.SizeOf(new TestData());
 
+        // Getting device info
+        int memory = SystemInfo.graphicsMemorySize;
+
         // Creating each buffer
         dataBuffer = new ComputeBuffer(count, stride);
         argsBuffer = new ComputeBuffer(1, (sizeof(int)));

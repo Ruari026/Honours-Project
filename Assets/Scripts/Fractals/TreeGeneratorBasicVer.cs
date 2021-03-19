@@ -1,38 +1,36 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using UnityEngine;
 
-public class TreeGeneratorBasicVer : MonoBehaviour
+public class TreeGeneratorBasicVer : TreeGeneratorBase
 {
-    [Min(1)]
-    [SerializeField]
-    private uint numberOfGenerations = 1;
-
-    [Header("Tree Data Generation Details")]
-    [Range(0, 90)]
-    [SerializeField]
-    private float branchAngle = 0;
-
-    [SerializeField]
-    private uint numberOfBranchSplits = 2;
-
-    [SerializeField]
-    private float branchSize = 1;
-    
-    [SerializeField]
-    private uint numberOfIterations = 1;
     private uint currentIteration = 0;
     
     [SerializeField]
     private List<BranchDataCPUVer> treeStarts = new List<BranchDataCPUVer>();
 
-    [Header("Model Representation Generation Details")]
-    [SerializeField]
-    private GameObject branchModelPrefab;
 
-    // Start is called before the first frame update
-    void Start()
+    /*
+    ============================================================================================================================================================================================================================================================================================================
+    TreeGeneratorBase Inherited Methods
+    ============================================================================================================================================================================================================================================================================================================
+    */
+    /// <summary>
+    /// 
+    /// </summary>
+    public override void ResetData()
+    {
+        currentIteration = 0;
+
+        treeStarts = new List<BranchDataCPUVer>();
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="debug"></param>
+    /// <returns></returns>
+    public override long GenerateTreeData(bool debug)
     {
         Stopwatch stopwatch = new Stopwatch();
         stopwatch.Start();
@@ -40,9 +38,21 @@ public class TreeGeneratorBasicVer : MonoBehaviour
         GenerateTreeDatas();
 
         stopwatch.Stop();
-        UnityEngine.Debug.LogFormat("CPU (Recursive Function) Algorithm Complete: {0}ms", stopwatch.ElapsedMilliseconds.ToString());
 
-        //StartModelGeneration();
+        if (debug)
+        {
+            UnityEngine.Debug.LogFormat("CPU (Recursive Function) Algorithm Complete: {0}ms", stopwatch.ElapsedMilliseconds.ToString());
+        }
+
+        return stopwatch.ElapsedMilliseconds;
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public override void GenerateTreeModels()
+    {
+        StartModelGeneration();
     }
 
 
@@ -51,6 +61,9 @@ public class TreeGeneratorBasicVer : MonoBehaviour
     Traditional CPU Implementation of Fractal Tree Generation Algorithm
     ============================================================================================================================================================================================================================================================================================================
     */
+    /// <summary>
+    /// 
+    /// </summary>
     private void GenerateTreeDatas()
     {
         treeStarts = new List<BranchDataCPUVer>();
@@ -65,6 +78,9 @@ public class TreeGeneratorBasicVer : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     private void CreateStartBranch()
     {
         // No point creating a start branch if the tree size is to be 0
@@ -87,7 +103,11 @@ public class TreeGeneratorBasicVer : MonoBehaviour
         // Finally stores the fully generated tree
         treeStarts.Add(treeStart);
     }
-
+    
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="previousBranches"></param>
     private void CreateNextSetOFSubBranches(List<BranchDataCPUVer> previousBranches)
     {
         List<BranchDataCPUVer> nextBranches = new List<BranchDataCPUVer>();
@@ -124,6 +144,9 @@ public class TreeGeneratorBasicVer : MonoBehaviour
     Creating Visual Representation of each generated tree
     ============================================================================================================================================================================================================================================================================================================
     */
+    /// <summary>
+    /// 
+    /// </summary>
     private void StartModelGeneration()
     {
         // Checking that a tree has actually been generated
@@ -146,6 +169,11 @@ public class TreeGeneratorBasicVer : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="previousData"></param>
+    /// <param name="previousPrefab"></param>
     private void ContinueModelGeneration(BranchDataCPUVer previousData, GameObject previousPrefab)
     {
         if (previousData != null && previousPrefab != null)
