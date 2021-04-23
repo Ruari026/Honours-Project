@@ -1,13 +1,13 @@
 ﻿// Each #kernel tells which function to compile; you can have many kernels
 #pragma kernel CSMain
 
-#define MAX_X_THREADS 16
-#define MAX_Y_THREADS 16
+#define MAX_X_THREADS 8
+#define MAX_Y_THREADS 4
 #define MAX_Z_THREADS 4
 
 #define MAX_BRANCHES 3
 #define MAX_ROTATION 30
-#define MAX_ITERATIONS 8
+#define MAX_ITERATIONS 6
 
 struct BranchData
 {
@@ -19,6 +19,8 @@ struct BranchData
     int connectedChildBranches;
     
     int childBranchesStartIdx;
+    
+    int padding;
 };
 
 BranchData CreateDefaultBranchData()
@@ -33,6 +35,8 @@ BranchData CreateDefaultBranchData()
     defaultData.connectedChildBranches = 0;
 
     defaultData.childBranchesStartIdx = -1;
+    
+    defaultData.padding = -1;
     
     return defaultData;
 }

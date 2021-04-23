@@ -1,23 +1,16 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
+﻿using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using UnityEngine;
 
-public class BranchDataBase
+
+public class BranchDataCPUVer
 {
     public UnityEngine.Quaternion branchRotation = UnityEngine.Quaternion.identity;
 
     public float branchScale = 1;
 
-    //public GameObject spawnedPrefab;
-}
-
-public class BranchDataCPUVer : BranchDataBase
-{
     public List<BranchDataCPUVer> childBranches = new List<BranchDataCPUVer>();
 }
+
 
 public struct BranchDataRefactoredVer
 {
@@ -37,6 +30,7 @@ public struct BranchDataGPUVer
     public int numberofChildBranches;
     public int numberofConnectedBranches;
     public int childBranchesStartIdx;
+    public int padding;
 
 
     public BranchDataGPUVer(int maxConnectedBranches)
@@ -46,5 +40,6 @@ public struct BranchDataGPUVer
         numberofChildBranches = 0;
         numberofConnectedBranches = 0;
         childBranchesStartIdx = -1;
+        padding = -1;
     }
 }

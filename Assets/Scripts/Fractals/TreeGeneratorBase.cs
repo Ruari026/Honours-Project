@@ -26,6 +26,9 @@ public abstract class TreeGeneratorBase : MonoBehaviour
     [SerializeField]
     protected GameObject branchModelPrefab = null;
 
+    [Header("Debugging")]
+    [SerializeField]
+    protected bool debug = false;
 
     /// <summary>
     /// 
@@ -37,10 +40,20 @@ public abstract class TreeGeneratorBase : MonoBehaviour
     /// </summary>
     /// <param name="debug"></param>
     /// <returns></returns>
-    public abstract long GenerateTreeData(bool debug);
+    public abstract long GenerateTreeData();
     
     /// <summary>
     /// 
     /// </summary>
     public abstract void GenerateTreeModels();
+
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="debug"></param>
+    public void SetDebug(bool debug)
+    {
+        this.debug = debug;
+    }
 }

@@ -150,12 +150,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ad668eb29b2d27c4484b6d342867f380, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  targetTreeGenerator: {fileID: 865665918}
+  targetTreeGenerator: {fileID: 1307419740}
   numberOfTests: 64
   generateTreeModels: 0
-  debug: 0
   dispatchTimes: 
   formattedTimes: 
+  averageTime: 0
+  enableDebugMessages: 0
 --- !u!4 &597089041
 Transform:
   m_ObjectHideFlags: 0
@@ -309,9 +310,10 @@ MonoBehaviour:
   branchAngle: 30
   numberOfBranchSplits: 3
   branchSize: 1
-  numberOfIterations: 4
+  numberOfIterations: 8
   branchModelPrefab: {fileID: 1904507018455601534, guid: 49d43c1b232b10b449fa80cbb9eace9d,
     type: 3}
+  debug: 0
 --- !u!1 &963194225
 GameObject:
   m_ObjectHideFlags: 0
@@ -424,13 +426,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: be9b1b05aea2e864894dc018ca5cb664, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  numberOfGenerations: 1024
+  numberOfGenerations: 128
   branchAngle: 30
   numberOfBranchSplits: 3
   branchSize: 1
-  numberOfIterations: 8
+  numberOfIterations: 6
   branchModelPrefab: {fileID: 1904507018455601534, guid: 49d43c1b232b10b449fa80cbb9eace9d,
     type: 3}
+  debug: 0
   theShader: {fileID: 7200000, guid: 4aa2f381f0d3de8479d122d0a7658880, type: 3}
 --- !u!4 &1307419741
 Transform:
@@ -512,9 +515,10 @@ MonoBehaviour:
   branchAngle: 30
   numberOfBranchSplits: 3
   branchSize: 1
-  numberOfIterations: 4
+  numberOfIterations: 8
   branchModelPrefab: {fileID: 1904507018455601534, guid: 49d43c1b232b10b449fa80cbb9eace9d,
     type: 3}
+  debug: 0
 --- !u!4 &1760258203
 Transform:
   m_ObjectHideFlags: 0

@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
+
 using UnityEngine;
 
 public class TreeGeneratorComputeVer : TreeGeneratorBase
@@ -18,12 +19,12 @@ public class TreeGeneratorComputeVer : TreeGeneratorBase
     private BranchDataGPUVer[] theTree = null;
     private int[] treeConnections = null;
 
-
     /*
-    ============================================================================================================================================================================================================================================================================================================
+    ====================================================================================================
     TreeGeneratorBase Inherited Methods
-    ============================================================================================================================================================================================================================================================================================================
+    ====================================================================================================
     */
+    #region TreeGeneratorBase Inherited Methods
     /// <summary>
     /// 
     /// </summary>
@@ -45,7 +46,7 @@ public class TreeGeneratorComputeVer : TreeGeneratorBase
     /// </summary>
     /// <param name="debug"></param>
     /// <returns></returns>
-    public override long GenerateTreeData(bool debug)
+    public override long GenerateTreeData()
     {
         Stopwatch stopwatch = new Stopwatch();
         stopwatch.Start();
@@ -71,13 +72,15 @@ public class TreeGeneratorComputeVer : TreeGeneratorBase
     {
         StartModelGeneration();
     }
+    #endregion
 
 
     /*
-    ============================================================================================================================================================================================================================================================================================================
+    ====================================================================================================
     Traditional CPU Implementation of Fractal Tree Generation Algorithm
-    ============================================================================================================================================================================================================================================================================================================
+    ====================================================================================================
     */
+    #region Traditional CPU Implementation of Fractal Tree Generation Algorithm
     /// <summary>
     /// 
     /// </summary>
@@ -94,22 +97,39 @@ public class TreeGeneratorComputeVer : TreeGeneratorBase
         maxPossibleBranches = bufferMaxCount;
         bufferMaxCount *= (int)numberOfGenerations;
 
-        // Calculating the size of the elements in the data struct (in bytes)
-        int bufferStride = 0;
-        BranchDataGPUVer testData = new BranchDataGPUVer((int)numberOfBranchSplits);
-        bufferStride = Marshal.SizeOf(testData);
-        dataBuffer = new ComputeBuffer(bufferMaxCount, bufferStride);
+        // Calculating the size of the elements in the required structs (in bytes)
+        int branchDataSize = Marshal.SizeOf(new BranchDataGPUVer((int)numberOfBranchSplits)); ; 
+        int intSize = sizeof(int);
+
+        // Creating buffer to store the main tree branch datas
+        if (debug)
+        {
+            UnityEngine.Debug.LogFormat("Created Data Buffer (Count: {0}, Stride: {1}, Bytes: {2}", bufferMaxCount, branchDataSize, ((long)bufferMaxCount * branchDataSize));
+        }
+        dataBuffer = new ComputeBuffer(bufferMaxCount, branchDataSize);
         dataBuffer.SetData(new BranchDataGPUVer[bufferMaxCount]);
 
         // Creating buffer to store the connections between the branches
-        connectionsBuffer = new ComputeBuffer(bufferMaxCount, (sizeof(int)));
+        if (debug)
+        {
+            UnityEngine.Debug.LogFormat("Created Connections Buffer (Count: {0}, Stride: {1}, Bytes: {2}", bufferMaxCount, intSize, (bufferMaxCount * intSize));
+        }
+        connectionsBuffer = new ComputeBuffer(bufferMaxCount, (intSize));
         connectionsBuffer.SetData(new int[bufferMaxCount]);
 
         // Also creating buffer to store the actual number of branches created in the compute shader && storing the number of connections through all the branches
-        argsBuffer = new ComputeBuffer(2, (sizeof(int)));
+        if (debug)
+        {
+            UnityEngine.Debug.LogFormat("Created Args Buffer (Count: {0}, Stride: {1}, Bytes: {2}", 2, intSize, (2 * intSize));
+        }
+        argsBuffer = new ComputeBuffer(2, (intSize));
         argsBuffer.SetData(new int[2]);
 
-        //UnityEngine.Debug.LogFormat("Tree Data Setup, created {0} branches", maxPossibleBranches.ToString());
+
+        if (debug)
+        {
+            UnityEngine.Debug.LogFormat("Tree Data Setup, created {0} branches", maxPossibleBranches.ToString());
+        }
     }
 
 
@@ -144,13 +164,15 @@ public class TreeGeneratorComputeVer : TreeGeneratorBase
         connectionsBuffer.GetData(treeConnections);
         connectionsBuffer.Release();
     }
+    #endregion
 
 
     /*
-    ============================================================================================================================================================================================================================================================================================================
+    ====================================================================================================
     Creating Visual Representation of each generated tree
-    ============================================================================================================================================================================================================================================================================================================
+    ====================================================================================================
     */
+    #region Creating Visual Representation of each generated tree
     /// <summary>
     /// 
     /// </summary>
@@ -210,4 +232,5 @@ public class TreeGeneratorComputeVer : TreeGeneratorBase
             ContinueModelGeneration(nextData, nextBranchPrefab);
         }
     }
+    #endregion
 }

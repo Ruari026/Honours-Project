@@ -307,7 +307,7 @@ GameObject:
   - component: {fileID: 1239487180}
   - component: {fileID: 1239487179}
   m_Layer: 0
-  m_Name: Generator
+  m_Name: Tester (Basic)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -326,6 +326,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   theShader: {fileID: 7200000, guid: 05596c93ec92a1e449075e7fc83469a0, type: 3}
+  bufferCount: 1000
+  numberOfTests: 64
+  dataSetupTimes: 
+  averageSetupTime: 0
+  setDataTimes: 
+  averageSetTime: 0
+  shaderDispatchTimes: 
+  averageDispatchTime: 0
+  getDataTimes: 
+  averageGetTime: 0
 --- !u!4 &1239487180
 Transform:
   m_ObjectHideFlags: 0

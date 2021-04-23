@@ -2,32 +2,42 @@
 #pragma kernel CSMain
 
 // HLSL: Define Directive (Defining custom constants) https://docs.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-appendix-pre-define-1
-#define MAX_X_THREADS 4
-#define MAX_Y_THREADS 4
-#define MAX_Z_THREADS 4
+#define MAX_X_THREADS 1
+#define MAX_Y_THREADS 1
+#define MAX_Z_THREADS 1
+#define MAX_COUNT 1000
 
 // HLSl: User Defined Types - https://docs.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-user-defined
 //typedef vector<int, 4> myInt;
 
 // HLSL: Struct (Needs to have the same layout as correspoding C# struct) https://docs.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-struct
-struct ComputeData
+struct BranchData
 {
-    int i;
+    float3 branchRotation;
+
+    float branchScale;
+
+    int numberOfChildBranches;
+    int connectedChildBranches;
+    
+    int childBranchesStartIdx;
+    
+    int padding;
 };
 
-RWStructuredBuffer<int> argsBuffer;
-RWStructuredBuffer<ComputeData> dataBuffer;
+RWStructuredBuffer<BranchData> dataBuffer;
 
 [numthreads(MAX_X_THREADS, MAX_Y_THREADS, MAX_Z_THREADS)]
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
-    int currentThread = (id.z * MAX_X_THREADS * MAX_Y_THREADS) + (id.y * MAX_X_THREADS) + id.x;
+    for (int i = 0; i < MAX_COUNT; i++)
+    {
+        LoadData(0);
+
+        BranchData newData = dataBuffer[i];
+        
+        newData.padding = i;
     
-    ComputeData newData;
-    newData.i = currentThread;
-    dataBuffer[currentThread] = newData;
-    
-    
-    int size = 64;
-    argsBuffer[0] = size;
+        dataBuffer[i] = newData;
+    }
 }

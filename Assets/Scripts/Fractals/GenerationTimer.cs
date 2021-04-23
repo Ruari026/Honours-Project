@@ -14,14 +14,17 @@ public class GenerationTimer : MonoBehaviour
     [SerializeField]
     private bool generateTreeModels = false;
 
-    [SerializeField]
-    private bool debug;
-
     [Header("Test Output")]
     [SerializeField]
     private List<long> dispatchTimes = new List<long>();
     [SerializeField]
     private string formattedTimes = "";
+    [SerializeField]
+    private double averageTime = 0.0f;
+
+    [Header("Debugging")]
+    [SerializeField]
+    private bool enableDebugMessages = false;
 
     // Start is called before the first frame update
     void Start()
@@ -29,9 +32,10 @@ public class GenerationTimer : MonoBehaviour
         // Running generation Test
         for (int i = 0; i < numberOfTests; i++)
         {
+            targetTreeGenerator.SetDebug(enableDebugMessages);
             targetTreeGenerator.ResetData();
 
-            long time = targetTreeGenerator.GenerateTreeData(debug);
+            long time = targetTreeGenerator.GenerateTreeData();
             dispatchTimes.Add(time);
 
             if (generateTreeModels)
@@ -50,5 +54,13 @@ public class GenerationTimer : MonoBehaviour
                 formattedTimes += ", ";
             }
         }
+
+        // Getting average time
+        long totalTime = 0;
+        foreach (long l in dispatchTimes)
+        {
+            totalTime += l;
+        }
+        averageTime = (totalTime / dispatchTimes.Count);
     }
 }
